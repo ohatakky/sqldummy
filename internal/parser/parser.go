@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ohatakky/sqldummy/adapter/mysql"
+	"github.com/ohatakky/sqldummy/internal/fields"
 )
 
 type parser struct {
@@ -15,12 +16,7 @@ type parser struct {
 
 type Parser interface {
 	DumpTableDDL(table string) (string, error)
-	ParseDDL(string) ([]*Column, error)
-}
-
-type Column struct {
-	Name string
-	Type string
+	ParseDDL(string) ([]*fields.Column, error)
 }
 
 func New(mysql *mysql.Mysql) Parser {
@@ -40,8 +36,8 @@ func (p *parser) DumpTableDDL(table string) (string, error) {
 	return ddl, nil
 }
 
-func (p *parser) ParseDDL(ddl string) ([]*Column, error) {
-	columns := make([]*Column, 0)
+func (p *parser) ParseDDL(ddl string) ([]*fields.Column, error) {
+	columns := make([]*fields.Column, 0)
 	lines := strings.Split(ddl, "\n")
 	for idx, line := range lines {
 		if idx == 0 {
@@ -67,8 +63,8 @@ func parseClosure(str string) string {
 	return strings.Trim(find[0], "`")
 }
 
-func parseColumn(str string) *Column {
-	return &Column{
+func parseColumn(str string) *fields.Column {
+	return &fields.Column{
 		Name: parseClosure(str),
 		Type: parseType(str),
 	}

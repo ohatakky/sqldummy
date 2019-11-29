@@ -1,29 +1,33 @@
 package generator
 
-type generator struct{}
+import (
+	"log"
 
-// ? iota?
-const (
-	MYSQL_VARCHAR = iota + 1
-	MYSQL_INT
+	"github.com/ohatakky/sqldummy/internal/fields"
 )
 
-func dummy(typ string) interface{} {
-	switch typ {
-	case "a":
+type generator struct{}
+
+func dummy(f fields.FieldType) interface{} {
+	switch f {
+	case fields.FieldTypeDecimal:
 		{
 
 		}
-	case "b":
+	case fields.FieldTypeDate:
 		{
 
 		}
-	case "c":
+	case fields.FieldTypeTiny:
+		{
+
+		}
+	case fields.FieldTypeVarChar:
 		{
 
 		}
 	default:
-		println("unsupported.")
+		log.Println("unsupported.")
 	}
 
 	return nil
