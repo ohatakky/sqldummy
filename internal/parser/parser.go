@@ -13,14 +13,14 @@ type parser struct {
 	Mysql *mysql.Mysql
 }
 
-type TypeMapper struct {
-	table   string
-	columns []map[string]string
-}
-
 type Parser interface {
 	DumpTableDDL(table string) (string, error)
-	ParseDDL(string) (*TypeMapper, error)
+	ParseDDL(string) ([]*Column, error)
+}
+
+type Column struct {
+	Name string
+	Type string
 }
 
 func New(mysql *mysql.Mysql) Parser {
@@ -37,19 +37,17 @@ func (p *parser) DumpTableDDL(table string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return ddl, nil
 }
 
-func (p *parser) ParseDDL(ddl string) (*TypeMapper, error) {
-	res := &TypeMapper{}
+func (p *parser) ParseDDL(ddl string) ([]*Column, error) {
+	columns := make([]*Column, 0)
 	lines := strings.Split(ddl, "\n")
 	for idx, line := range lines {
 		if idx == 0 {
 			if line[0:6] != "CREATE" {
 				return nil, errors.New("parse DDL failed")
 			}
-			res.table = parseClosure(line)
 		}
 		if idx == len(lines)-1 {
 			continue
@@ -57,11 +55,10 @@ func (p *parser) ParseDDL(ddl string) (*TypeMapper, error) {
 		if line[0:3] != "  `" {
 			continue
 		}
-		column := parseColumn(line)
-		res.columns = append(res.columns, column)
+		columns = append(columns, parseColumn(line))
 	}
 
-	return res, nil
+	return columns, nil
 }
 
 func parseClosure(str string) string {
@@ -70,10 +67,11 @@ func parseClosure(str string) string {
 	return strings.Trim(find[0], "`")
 }
 
-func parseColumn(str string) map[string]string {
-	column := make(map[string]string, 1)
-	column[parseClosure(str)] = parseType(str)
-	return column
+func parseColumn(str string) *Column {
+	return &Column{
+		Name: parseClosure(str),
+		Type: parseType(str),
+	}
 }
 
 func parseType(str string) string {
